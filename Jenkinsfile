@@ -19,7 +19,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deploying the application...'
+                echo 'Deploying the application via Neelam...'
                 // Add your deployment commands here
                 // Example: bat 'npm run deploy'
                 echo 'Application deployed successfully!'
