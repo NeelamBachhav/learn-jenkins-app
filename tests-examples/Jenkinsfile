@@ -4,8 +4,8 @@ pipeline {
     stages {
         stage('Test') {
             steps {
-                sh 'npm ci'
-                sh 'CI=true npm test -- --watchAll=false'
+                bat 'npm ci'
+                bat 'set CI=true && npm test -- --watchAll=false'
             }
         }
     }
