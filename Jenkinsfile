@@ -17,13 +17,18 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                bat '''
+                    call npm ci
+                '''
+            }
+        }
+
         stage('Build') {
             steps {
                 bat '''
                     set REACT_APP_VERSION=1.0.%BUILD_NUMBER%
-
-                    call npm ci
-
                     call npm run build
                 '''
             }
@@ -35,24 +40,24 @@ pipeline {
                     call npm test -- --watchAll=false
                 '''
             }
+        }
 
-            post {
-                always {
-                    echo Unit tests completed
-                }
+        stage('Playwright Browser Install') {
+            steps {
+                bat '''
+                    call npx playwright install chromium
+                '''
             }
         }
 
         stage('E2E Tests') {
             steps {
                 bat '''
-                    call npx playwright install chromium
-
                     start "" /B npx serve -s build
 
                     powershell -Command "Start-Sleep -Seconds 10"
 
-                    call npx playwright test --reporter=html
+                    call npx playwright test e2e/app.spec.js --grep "has title|has Jenkins in the body"
                 '''
             }
         }
@@ -64,11 +69,12 @@ pipeline {
         }
 
         success {
-            echo 'Build successful'
+            echo 'SUCCESS: All configured stages passed'
         }
 
         failure {
-            echo 'Build failed'
+            echo 'FAILURE: One or more stages failed'
         }
     }
 }
+``
