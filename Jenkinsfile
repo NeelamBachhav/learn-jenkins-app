@@ -45,9 +45,11 @@ pipeline {
         stage('E2E Tests') {
             steps {
                 bat '''
+                    call npx playwright install chromium
                     start /B npx serve -s build
-                    timeout /t 10 /nobreak > nul
+                    powershell -Command "Start-Sleep -Seconds 10"
                     call npx playwright test --reporter=html
+
                 '''
             }
         }
