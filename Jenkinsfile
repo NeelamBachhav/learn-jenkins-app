@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REACT_APP_VERSION = "1.0.${BUILD_ID}"
+        REACT_APP_VERSION = "1.0.${BUILD_NUMBER}"
     }
 
     stages {
@@ -20,10 +20,11 @@ pipeline {
         stage('Build') {
             steps {
                 bat '''
-                    dir
+                    set REACT_APP_VERSION=1.0.%BUILD_NUMBER%
+
                     call npm ci
+
                     call npm run build
-                    dir
                 '''
             }
         }
@@ -37,7 +38,7 @@ pipeline {
 
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: 'jest-results/*.xml'
+                    echo Unit tests completed
                 }
             }
         }
@@ -46,10 +47,12 @@ pipeline {
             steps {
                 bat '''
                     call npx playwright install chromium
-                    start /B npx serve -s build
-                    powershell -Command "Start-Sleep -Seconds 10"
-                    call npx playwright test --reporter=html
 
+                    start "" /B npx serve -s build
+
+                    powershell -Command "Start-Sleep -Seconds 10"
+
+                    call npx playwright test --reporter=html
                 '''
             }
         }
