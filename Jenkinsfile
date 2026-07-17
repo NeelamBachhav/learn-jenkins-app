@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REACT_APP_VERSION = "1.0.${BUILD_ID}"
+        REACT_APP_VERSION = "1.0.${BUILD_NUMBER}"
     }
 
     stages {
@@ -17,13 +17,19 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies') {
+            steps {
+                bat '''
+                    call npm ci
+                '''
+            }
+        }
+
         stage('Build') {
             steps {
                 bat '''
-                    dir
-                    call npm ci
+                    set REACT_APP_VERSION=1.0.%BUILD_NUMBER%
                     call npm run build
-                    dir
                 '''
             }
         }
@@ -34,20 +40,24 @@ pipeline {
                     call npm test -- --watchAll=false
                 '''
             }
+        }
 
-            post {
-                always {
-                    junit allowEmptyResults: true, testResults: 'jest-results/*.xml'
-                }
+        stage('Install Playwright Browsers') {
+            steps {
+                bat '''
+                    call npx playwright install chromium
+                '''
             }
         }
 
         stage('E2E Tests') {
             steps {
                 bat '''
-                    call npm run e2e -- --headless
-                    
+                    start "" /B npx serve -s build
 
+                    powershell -Command "Start-Sleep -Seconds 10"
+
+                    call npx playwright test
                 '''
             }
         }
